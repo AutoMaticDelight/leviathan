@@ -14,7 +14,7 @@ function Cited({ text }: { text: string }) {
     <>
       {text.split(/(\[\d+\])/g).map((piece, i) =>
         /^\[\d+\]$/.test(piece) ? (
-          <span key={i} className="font-mono text-[0.85em] text-accent">
+          <span key={i} className="font-mono font-semibold text-accent">
             {piece}
           </span>
         ) : (
@@ -55,7 +55,7 @@ export default function Console() {
       {/* masthead */}
       <header className="flex items-baseline justify-between gap-4 border-b border-rule pb-4">
         <div className="flex items-baseline gap-3">
-          <h1 className="font-mono text-sm tracking-[0.28em] text-ink">
+          <h1 className="font-mono text-base tracking-[0.28em] text-ink">
             LEVIATHAN
           </h1>
           <span className="readout text-faint">closed universe</span>
@@ -90,7 +90,7 @@ export default function Console() {
       <div className="flex flex-1 flex-col gap-8">
         {messages.length === 0 && (
           <div className="flex flex-col gap-3 py-12">
-            <p className="text-[15px] leading-relaxed text-dim">
+            <p className="t-body text-dim">
               Ask a question. It answers only from the documents you have added,
               cites the passage every claim came from, and tells you plainly when
               it has nothing.
@@ -112,7 +112,7 @@ export default function Console() {
 
           if (m.role === "user") {
             return (
-              <p key={m.id} className="text-[17px] leading-snug text-ink">
+              <p key={m.id} className="t-lead text-ink">
                 <span className="mr-2 text-accent">›</span>
                 {text}
               </p>
@@ -123,7 +123,7 @@ export default function Console() {
             <div key={m.id} className="flex flex-col gap-5">
               {trace && <Trace data={trace.data} active={busy && isLast} />}
               {text && (
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">
+                <p className="whitespace-pre-wrap t-body text-ink">
                   <Cited text={text} />
                 </p>
               )}
@@ -155,13 +155,13 @@ export default function Console() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your sources…"
-          className="h-11 min-w-0 flex-1 border border-rule bg-sunk px-3 text-[15px] text-ink placeholder:text-faint focus:border-accent focus:outline-none"
+          className="h-12 min-w-0 flex-1 border border-rule bg-sunk px-3 t-body text-ink placeholder:text-faint focus:border-accent focus:outline-none"
         />
         <VoiceButton onTranscript={setInput} disabled={busy} />
         <button
           type={busy ? "button" : "submit"}
           onClick={busy ? stop : undefined}
-          className="readout h-11 shrink-0 border border-accent px-4 text-accent transition-colors hover:bg-accent hover:text-ground"
+          className="readout h-12 shrink-0 border border-accent px-5 text-accent transition-colors hover:bg-accent hover:text-ground"
         >
           {busy ? "Stop" : "Ask"}
         </button>

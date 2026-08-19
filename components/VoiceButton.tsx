@@ -63,13 +63,13 @@ export default function VoiceButton({
           setListening(true);
         }
       }}
-      className={`flex h-11 w-11 shrink-0 items-center justify-center border transition-colors disabled:opacity-40 ${
+      className={`flex h-12 w-12 shrink-0 items-center justify-center border transition-colors disabled:opacity-40 ${
         listening
           ? "border-live text-live live-dot"
           : "border-rule text-dim hover:border-faint hover:text-ink"
       }`}
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <rect x="9" y="2" width="6" height="12" rx="3" />
         <path d="M5 11a7 7 0 0 0 14 0M12 18v4" />
       </svg>

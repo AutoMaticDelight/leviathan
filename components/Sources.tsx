@@ -24,19 +24,19 @@ export default function Sources({ passages }: { passages: SourcePassage[] }) {
                 onClick={() => setOpen(isOpen ? null : i)}
                 className="flex w-full items-baseline gap-3 bg-sunk px-3 py-2 text-left transition-colors hover:bg-rule/40"
               >
-                <span className="font-mono text-[11px] tabular-nums text-accent">
+                <span className="readout-num text-accent">
                   [{i + 1}]
                 </span>
-                <span className="min-w-0 flex-1 truncate text-[13px] text-ink">
+                <span className="min-w-0 flex-1 truncate t-detail text-ink">
                   {p.title}
                   <span className="text-faint"> · p.{p.page}</span>
                 </span>
-                <span className="font-mono text-[11px] tabular-nums text-dim">
+                <span className="readout-num text-dim">
                   {p.similarity.toFixed(2)}
                 </span>
               </button>
               {isOpen && (
-                <p className="whitespace-pre-wrap border-l-2 border-accent bg-sunk/60 px-4 py-3 text-[13px] leading-relaxed text-dim">
+                <p className="whitespace-pre-wrap border-l-2 border-accent bg-sunk/60 px-4 py-3 t-detail text-dim">
                   {p.content}
                 </p>
               )}
