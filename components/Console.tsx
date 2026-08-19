@@ -41,13 +41,21 @@ export default function Console() {
     setIngest(`Reading ${file.name}…`);
     const body = new FormData();
     body.append("file", file);
-    const res = await fetch("/api/ingest", { method: "POST", body });
-    const json = await res.json();
-    setIngest(
-      res.ok
-        ? `${json.title} — ${json.pages} pages, ${json.chunks} passages indexed.`
-        : `Failed: ${json.error}`
-    );
+    try {
+      const res = await fetch("/api/ingest", { method: "POST", body });
+      // A crash upstream returns HTML, not JSON — don't let res.json() throw
+      // and leave the message stuck on "Reading…" forever.
+      const json = await res.json().catch(() => ({
+        error: `Server returned ${res.status} with no detail. Check the terminal.`,
+      }));
+      setIngest(
+        res.ok
+          ? `${json.title} — ${json.pages} pages, ${json.chunks} passages indexed.`
+          : `Failed: ${json.error}`
+      );
+    } catch {
+      setIngest("Failed: could not reach the server.");
+    }
   }, []);
 
   return (

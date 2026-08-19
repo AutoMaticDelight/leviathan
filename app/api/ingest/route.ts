@@ -34,12 +34,23 @@ export async function POST(req: Request) {
   // Moving this to a background job is a good second project.
   const embeddings: number[][] = [];
   const BATCH = 96;
-  for (let i = 0; i < chunks.length; i += BATCH) {
-    const { embeddings: batch } = await embedMany({
-      model: EMBEDDING_MODEL,
-      values: chunks.slice(i, i + BATCH).map((c) => c.content),
-    });
-    embeddings.push(...batch);
+  try {
+    for (let i = 0; i < chunks.length; i += BATCH) {
+      const { embeddings: batch } = await embedMany({
+        model: EMBEDDING_MODEL,
+        values: chunks.slice(i, i + BATCH).map((c) => c.content),
+      });
+      embeddings.push(...batch);
+    }
+  } catch (e) {
+    // Provider failures are the most common thing to go wrong here — no
+    // credit, bad key, rate limit. Say which, in JSON, so the interface can
+    // show it instead of choking on an HTML error page.
+    const message = e instanceof Error ? e.message : String(e);
+    return Response.json(
+      { error: `Embedding failed. ${message}` },
+      { status: 502 }
+    );
   }
 
   const supabase = db();
