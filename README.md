@@ -23,10 +23,10 @@ cp .env.local.example .env.local
 ```
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — Supabase, under
-  Project Settings → API.
-- `AI_GATEWAY_API_KEY` — [Vercel AI Gateway](https://vercel.com/docs/ai-gateway).
-  One key reaches every model; you can swap Claude for Gemini by editing a
-  single string in `lib/config.ts`.
+  Project Settings → API. Use the `service_role` key, not `anon`.
+- `ANTHROPIC_API_KEY` — console.anthropic.com → API keys. Does the reasoning.
+- `OPENAI_API_KEY` — platform.openai.com → API keys. Does the embeddings only,
+  and embeddings are cheap: indexing a full casebook costs cents.
 
 **3. Run it**
 
@@ -104,10 +104,12 @@ Roughly in order of difficulty. Each one teaches something specific.
 - [ ] **Sign-in and RLS.** The database is wide open behind a server-only key.
       Fine for one person; not fine the moment anyone else has the URL.
 
-Upgrades worth knowing about: `voyage/voyage-3.5` and `cohere/embed-v4.0` are
-embedding models tuned for retrieval quality and generally beat the default on
-dense legal text. Changing model means changing `vector(1536)` in the migration
-to match — and re-embedding everything.
+Upgrades worth knowing about: `text-embedding-3-large` is a one-word change in
+`lib/config.ts` and measurably better on dense legal text — but it returns 3072
+numbers, so `vector(1536)` in the migration has to change to match and every
+document has to be re-embedded. Voyage and Cohere both make embedding models
+tuned specifically for retrieval that beat OpenAI's; swapping to one means
+adding their provider package alongside the two already here.
 
 ---
 

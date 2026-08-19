@@ -1,13 +1,16 @@
+import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
+
 /**
  * Every number that changes the app's personality lives here.
  * Tune these before you touch anything else.
  */
 
-/** Reasoning model. Any Gateway id works: try anthropic/claude-opus-5 for hard questions. */
-export const ANSWER_MODEL = "anthropic/claude-sonnet-5";
+/** Reasoning model. Swap to anthropic("claude-opus-5") for harder questions. */
+export const ANSWER_MODEL = anthropic("claude-sonnet-5");
 
 /** Embedding model. Changing this means changing vector(1536) in the migration too. */
-export const EMBEDDING_MODEL = "openai/text-embedding-3-small";
+export const EMBEDDING_MODEL = openai.textEmbeddingModel("text-embedding-3-small");
 
 /** Characters per chunk. Smaller = sharper citations, more noise. Larger = better context, vaguer cites. */
 export const CHUNK_SIZE = 1400;
