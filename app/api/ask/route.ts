@@ -105,9 +105,16 @@ export async function POST(req: Request) {
         ],
       });
 
-      writer.merge(result.toUIMessageStream({ sendStart: false }));
+      // Without an onError here, a provider failure (no credit, bad key, rate
+      // limit) reaches the browser as the useless string "An error occurred."
+      writer.merge(
+        result.toUIMessageStream({
+          sendStart: false,
+          onError: (e) => (e instanceof Error ? e.message : String(e)),
+        })
+      );
     },
-    onError: (e) => (e instanceof Error ? e.message : "Something failed."),
+    onError: (e) => (e instanceof Error ? e.message : String(e)),
   });
 
   return createUIMessageStreamResponse({ stream });
