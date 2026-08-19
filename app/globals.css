@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   One token source. Change a value here and the whole interface follows.
+   Deliberately single-theme: this is a dark instrument panel, not a document.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-ground:  #08090B;   /* page */
+  --color-panel:   #0E1014;   /* raised surfaces */
+  --color-sunk:    #131620;   /* inset surfaces */
+  --color-rule:    #1E2230;   /* hairlines */
+  --color-ink:     #E6E8EC;   /* primary text */
+  --color-dim:     #7C8496;   /* secondary text */
+  --color-faint:   #4A5162;   /* tertiary / disabled */
+
+  --color-live:    #35D6D0;   /* scanning, in-flight, telemetry */
+  --color-accent:  #F5A524;   /* the one hot colour: admitted, cited, active */
+  --color-refuse:  #6E8BB8;   /* refusals read calm and deliberate, never red */
+
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: color-mix(in oklab, var(--color-accent) 35%, transparent); }
+:focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+
+/* Rule of three: these clusters appear everywhere, so they get a name. */
+@utility readout {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+@utility hairline { border-color: var(--color-rule); }
+@utility panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+}
+
+@keyframes pulse-live { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+@utility live-dot {
+  animation: pulse-live 1.1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
