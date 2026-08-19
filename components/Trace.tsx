@@ -25,20 +25,28 @@ const LABEL: Record<TraceData["stage"], string> = {
 export default function Trace({
   data,
   active,
+  answered,
 }: {
   data: TraceData;
+  /** false once the request has finished or failed */
   active: boolean;
+  /** true if any answer text actually arrived */
+  answered: boolean;
 }) {
   const inFlight = data.stage === "searching" || data.stage === "answering";
-  const halted = inFlight && !active;
+  const done = inFlight && !active && answered;
+  const halted = inFlight && !active && !answered;
 
-  const label = halted ? "Halted" : LABEL[data.stage];
-  const tone =
-    halted || data.stage === "refused"
-      ? "text-refuse"
-      : inFlight
-        ? "text-live"
-        : "text-dim";
+  const label = done ? "Answered" : halted ? "Halted" : LABEL[data.stage];
+  const tone = halted
+    ? "text-refuse"
+    : done
+      ? "text-accent"
+      : data.stage === "refused"
+        ? "text-refuse"
+        : inFlight
+          ? "text-live"
+          : "text-dim";
 
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-l-2 border-rule py-2 pl-4">

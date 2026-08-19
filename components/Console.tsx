@@ -129,7 +129,13 @@ export default function Console() {
 
           return (
             <div key={m.id} className="flex flex-col gap-5">
-              {trace && <Trace data={trace.data} active={busy && isLast} />}
+              {trace && (
+                <Trace
+                  data={trace.data}
+                  active={busy && isLast}
+                  answered={text.length > 0}
+                />
+              )}
               {text && (
                 <p className="whitespace-pre-wrap t-body text-ink">
                   <Cited text={text} />
