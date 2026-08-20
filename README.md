@@ -70,6 +70,49 @@ has. There is no correct value, only the one that suits your documents. Find it
 by asking twenty questions you already know the answers to and watching the
 scores in the source panel.
 
+## The second pass
+
+Every answer is re-read by a **different, more capable model** that decides,
+claim by claim, whether the passages actually support it.
+
+The design decision that matters is what the verifier is **not** shown: the
+original question. The check is narrow — *is this text supported by this
+evidence?* — and knowing what was asked would let it reason about what the
+answer was *trying* to say instead of what it said. Withholding the question is
+what makes it a second opinion rather than an echo.
+
+The load-bearing instruction in its prompt is this: **a claim can be perfectly
+true in the world and still be unsupported here.** That is the failure mode that
+actually threatens a lawyer — a real doctrine, correctly stated, cited to a case
+that never mentioned it.
+
+It works. Tested against a planted answer with three known defects, it passed
+the sourced claim, flagged a genuine citation to *Zippo* (real law, absent from
+those passages) as unsupported, and caught a fabricated fact the passages
+contradict.
+
+Verification runs on `claude-opus-5` while answers run on `claude-sonnet-5`.
+Costs very little — the verifier's output is a few hundred tokens — and its
+mistakes aren't correlated with the answerer's, which is the entire point of
+asking twice.
+
+## Accuracy tracking — `/rules`
+
+Every question is logged with the numbers behind it before the answer exists, so
+a question that crashes mid-answer still leaves a trace. You can rate answers
+good or bad. `/rules` then shows:
+
+- What the system promises, in plain language
+- The live settings from `lib/config.ts`
+- How often the second pass agreed, and how many claims came back unsourced
+- **A histogram of best-match score, answered versus refused** — this is how you
+  set `SIMILARITY_FLOOR` from evidence instead of from my guess. If refusals
+  cluster below your floor and answers above it, the floor is right. Overlap in
+  the middle is where you're guessing.
+
+Logging never breaks an answer. If the database write fails it logs to console
+and the reader still gets their response.
+
 ### The failure mode to remember
 
 When retrieval misses, it looks exactly like "not in my documents." A **no**
@@ -82,8 +125,8 @@ exists, ask again in different words before believing it.
 
 Roughly in order of difficulty. Each one teaches something specific.
 
-- [ ] **Show scores while you tune.** Log every similarity to the console, ask
-      thirty real questions, then set the floor from evidence instead of my guess.
+- [x] ~~Show scores while you tune.~~ Done — `/rules` has the histogram. Ask
+      thirty real questions, then move the floor to where the evidence points.
 - [ ] **Highlight the quoted sentence** inside the source passage, not just the
       passage. Small change, large difference in how much you trust it.
 - [ ] **Re-rank.** Retrieve twenty, then have a cheap model score each one for
@@ -128,12 +171,17 @@ adding their provider package alongside the two already here.
 
 ```
 app/api/ingest/  extract → chunk → embed → store
-app/api/ask/     retrieve → refuse or answer, streamed
+app/api/ask/     retrieve → refuse or answer, streamed, logged
+app/api/verify/  the second pass — never shown the question
+app/api/rate/    thumbs up / down
+app/rules/       the promises, the settings, and the evidence
+middleware.ts    the shared-passphrase gate (covers the API routes too)
 lib/config.ts    every tunable number, in one file
 lib/chunk.ts     the splitter
 lib/retrieve.ts  search and the confidence floor
-components/      Console (shell) · Trace (narration) · Sources · VoiceButton
-supabase/        the migration — run once
+lib/log.ts       question bookkeeping
+components/      Console · Trace · Sources · Verdict · VoiceButton · Unlock
+supabase/        two migrations — run both, in order
 ```
 
 Voice uses the browser's built-in Web Speech API: no key, no cost, Chrome and
