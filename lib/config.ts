@@ -9,6 +9,16 @@ import { openai } from "@ai-sdk/openai";
 /** Reasoning model. Swap to anthropic("claude-opus-5") for harder questions. */
 export const ANSWER_MODEL = anthropic("claude-sonnet-5");
 
+/**
+ * The second-pass verifier. Deliberately a MORE capable model than the answerer.
+ *
+ * Catching a claim that sounds supported but isn't is harder than writing the
+ * answer was — and the verifier's output is short, so the stronger model costs
+ * very little here. Using a different model also means its mistakes aren't
+ * correlated with the answerer's, which is the whole point of a second opinion.
+ */
+export const VERIFIER_MODEL = anthropic("claude-opus-5");
+
 /** Embedding model. Changing this means changing vector(1536) in the migration too. */
 export const EMBEDDING_MODEL = openai.textEmbeddingModel("text-embedding-3-small");
 

@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { retrieve, asContext } from "@/lib/retrieve";
 import { ANSWER_MODEL } from "@/lib/config";
+import { logQuery, logAnswer } from "@/lib/log";
 import type { LeviathanUIMessage } from "@/ai/types";
 
 export const maxDuration = 60;
@@ -49,6 +50,12 @@ export async function POST(req: Request) {
       });
 
       const r = await retrieve(question);
+      const refused = r.passages.length === 0;
+      const queryId = await logQuery(question, r, refused);
+
+      if (queryId !== null) {
+        writer.write({ type: "data-query", id: "query", data: { id: queryId } });
+      }
 
       writer.write({
         type: "data-trace",
@@ -70,7 +77,7 @@ export async function POST(req: Request) {
 
       // Nothing cleared the floor. Refuse here, in code — don't ask the model
       // to be honest when we can simply not give it the opportunity to guess.
-      if (r.passages.length === 0) {
+      if (refused) {
         const best = r.candidates[0];
         writer.write({
           type: "text-start",
@@ -90,6 +97,7 @@ export async function POST(req: Request) {
             `\n\nTry naming the doctrine, the party, or a phrase you expect verbatim.`,
         });
         writer.write({ type: "text-end", id: "refusal" });
+        if (queryId !== null) await logAnswer(queryId, "Not in the provided sources.");
         return;
       }
 
@@ -113,6 +121,17 @@ export async function POST(req: Request) {
           onError: (e) => (e instanceof Error ? e.message : String(e)),
         })
       );
+
+      // Awaiting the finished text keeps this function alive until generation
+      // completes — on serverless, a fire-and-forget write here would often be
+      // killed before it landed.
+      if (queryId !== null) {
+        try {
+          await logAnswer(queryId, await result.text);
+        } catch {
+          /* the answer already reached the reader; bookkeeping can fail quietly */
+        }
+      }
     },
     onError: (e) => (e instanceof Error ? e.message : String(e)),
   });

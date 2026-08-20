@@ -7,6 +7,7 @@ import type { LeviathanUIMessage, SourcePassage } from "@/ai/types";
 import Trace from "./Trace";
 import Sources from "./Sources";
 import VoiceButton from "./VoiceButton";
+import Verdict from "./Verdict";
 
 /** Paint [1] style citations in the accent colour so claims and sources link visually. */
 function Cited({ text }: { text: string }) {
@@ -68,7 +69,13 @@ export default function Console() {
           </h1>
           <span className="readout text-faint">closed universe</span>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <a
+            href="/rules"
+            className="readout border border-rule px-3 py-2 text-dim transition-colors hover:border-accent hover:text-accent"
+          >
+            Rules
+          </a>
           <input
             ref={fileRef}
             type="file"
@@ -113,6 +120,7 @@ export default function Console() {
           const isLast = i === messages.length - 1;
           const sources = m.parts.find((p) => p.type === "data-sources");
           const trace = m.parts.find((p) => p.type === "data-trace");
+          const query = m.parts.find((p) => p.type === "data-query");
           const text = m.parts
             .filter((p) => p.type === "text")
             .map((p) => p.text)
@@ -140,6 +148,12 @@ export default function Console() {
                 <p className="whitespace-pre-wrap t-body text-ink">
                   <Cited text={text} />
                 </p>
+              )}
+              {query && text && trace?.data.stage !== "refused" && (
+                <Verdict
+                  queryId={query.data.id}
+                  ready={!(busy && isLast)}
+                />
               )}
               {sources && (
                 <Sources passages={sources.data.passages as SourcePassage[]} />

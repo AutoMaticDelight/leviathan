@@ -24,5 +24,7 @@ export type LeviathanUIMessage = UIMessage<
       stage: "searching" | "ranking" | "answering" | "refused";
     };
     sources: { passages: SourcePassage[] };
+    /** The row id for this question, so the browser can ask for a verification pass. */
+    query: { id: number };
   }
 >;
