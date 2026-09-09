@@ -186,3 +186,7 @@ supabase/        two migrations — run both, in order
 
 Voice uses the browser's built-in Web Speech API: no key, no cost, Chrome and
 Edge only.
+
+---
+
+Designed and built by [Bryan S. Holland](https://automaticdelight.com) · [portfolio](https://portfolio.automaticdelight.com) · [resume](https://automaticdelight.com/resume) · bryan@automaticdelight.com
