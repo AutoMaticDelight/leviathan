@@ -1,4 +1,3 @@
-import { gateway } from "ai";
 import { openai } from "@ai-sdk/openai";
 
 /**
@@ -7,13 +6,12 @@ import { openai } from "@ai-sdk/openai";
  */
 
 /**
- * Claude is reached through Vercel AI Gateway, billed to the Vercel account and
- * authenticated by the deployment's own OIDC token — no Anthropic key or
- * separate Anthropic billing to run dry.
- *
- * Reasoning model. Swap to gateway("anthropic/claude-opus-5") for harder questions.
+ * Answers and verification run on OpenAI, the same account that already does
+ * embeddings — one provider, one balance. (The Anthropic API account ran dry
+ * on 2026-10-03 and broke a live question. To return to Claude, add Vercel AI
+ * Gateway credit and use gateway("anthropic/claude-sonnet-5") from "ai".)
  */
-export const ANSWER_MODEL = gateway("anthropic/claude-sonnet-5");
+export const ANSWER_MODEL = openai("gpt-5");
 
 /**
  * The second-pass verifier. Deliberately a MORE capable model than the answerer.
@@ -23,7 +21,7 @@ export const ANSWER_MODEL = gateway("anthropic/claude-sonnet-5");
  * very little here. Using a different model also means its mistakes aren't
  * correlated with the answerer's, which is the whole point of a second opinion.
  */
-export const VERIFIER_MODEL = gateway("anthropic/claude-opus-5");
+export const VERIFIER_MODEL = openai("gpt-5");
 
 /** Embedding model. Changing this means changing vector(1536) in the migration too. */
 export const EMBEDDING_MODEL = openai.textEmbeddingModel("text-embedding-3-small");
