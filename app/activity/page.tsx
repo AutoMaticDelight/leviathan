@@ -71,6 +71,15 @@ export default async function ActivityPage() {
       .limit(500),
   ]);
 
+  const { data: files } = await supabase.storage.from("feedback").list("", { limit: 100, sortBy: { column: "name", order: "desc" } });
+  const wishes: { at: string; picks: string[]; note: string }[] = [];
+  for (const f of files ?? []) {
+    const { data } = await supabase.storage.from("feedback").download(f.name);
+    if (data) {
+      try { wishes.push(JSON.parse(await data.text())); } catch {}
+    }
+  }
+
   const d = (docs ?? []) as Doc[];
   const q = (queries ?? []) as Query[];
 
@@ -115,6 +124,27 @@ export default async function ActivityPage() {
             </span>
           </div>
         ))}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="readout">What JD asked for</h2>
+        {wishes.length === 0 ? (
+          <p className="t-detail text-faint">No answer yet. JD sees the question when he opens Leviathan.</p>
+        ) : (
+          <ul className="flex flex-col gap-px">
+            {wishes.map((w) => (
+              <li key={w.at} className="grid grid-cols-[8.5rem_1fr] gap-4 bg-panel px-4 py-3">
+                <span className="readout-num text-faint">{when(w.at)}</span>
+                <div className="flex min-w-0 flex-col gap-1">
+                  {w.picks.map((p) => (
+                    <span key={p} className="t-detail text-accent">· {p}</span>
+                  ))}
+                  {w.note && <p className="t-detail break-words text-ink">&ldquo;{w.note}&rdquo;</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="flex flex-col gap-3">

@@ -8,6 +8,7 @@ import Trace from "./Trace";
 import Sources from "./Sources";
 import VoiceButton from "./VoiceButton";
 import Verdict from "./Verdict";
+import WishCard from "./WishCard";
 
 /** Paint [1] style citations in the accent colour so claims and sources link visually. */
 function Cited({ text }: { text: string }) {
@@ -79,7 +80,7 @@ export default function Console() {
           <input
             ref={fileRef}
             type="file"
-            accept="application/pdf"
+            accept=".pdf,.docx,.md,.markdown,.txt,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="sr-only"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -92,7 +93,7 @@ export default function Console() {
             onClick={() => fileRef.current?.click()}
             className="readout border border-rule px-3 py-2 text-dim transition-colors hover:border-accent hover:text-accent"
           >
-            + Add PDF
+            + Add notes
           </button>
         </div>
       </header>
@@ -101,14 +102,17 @@ export default function Console() {
         <p className="readout border-l-2 border-live pl-3 text-live">{ingest}</p>
       )}
 
+      <WishCard />
+
       {/* transcript */}
       <div className="flex flex-1 flex-col gap-8">
         {messages.length === 0 && (
           <div className="flex flex-col gap-3 py-12">
             <p className="t-body text-dim">
-              Ask a question. It answers only from the documents you have added,
-              cites the passage every claim came from, and tells you plainly when
-              it has nothing.
+              Ask anything about your world — who&apos;s allied with whom, what a
+              nation believes, what you wrote about a place. It answers only from
+              the notes you have added, cites the passage every claim came from,
+              and tells you plainly when it has nothing.
             </p>
             <p className="readout text-faint">
               Nothing here comes from the model&apos;s own memory.
