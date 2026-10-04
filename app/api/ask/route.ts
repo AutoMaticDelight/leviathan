@@ -38,7 +38,7 @@ Rules, without exception:
 - Quote the exact supporting sentence when the claim is specific.
 - If the passages do not answer the question, reply with exactly: Not in the provided sources.
   Then say what search terms might find it. Do not answer partially.
-- Never supply case law, holdings, dates, or citations from your own knowledge.
+- Never add anything from your own knowledge: no case law, holdings, dates, names, places, or invented lore. If the documents describe a fictional world, treat them as the only truth about it.
 - Do not bridge gaps between passages with inference.
 - If two passages conflict, show both quotes and say they conflict.`;
 
