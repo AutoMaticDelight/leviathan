@@ -12,6 +12,25 @@ import type { LeviathanUIMessage } from "@/ai/types";
 
 export const maxDuration = 60;
 
+/**
+ * What the reader sees when the model provider fails. The raw provider text
+ * ("Your credit balance is too low…") means nothing to a student; the real
+ * message is kept in the queries table so the owner can see what broke.
+ */
+function readerMessage(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e);
+  if (/credit balance|billing|quota|rate limit|overloaded|api key|authentication/i.test(raw)) {
+    return "Leviathan can't answer right now — the service behind it is down on our end, not yours. Your documents are saved. Please try the same question again later.";
+  }
+  return "Something went wrong while answering. Your documents are saved — please try again.";
+}
+
+async function logFailure(queryId: number | null, e: unknown) {
+  if (queryId === null) return;
+  const raw = e instanceof Error ? e.message : String(e);
+  await logAnswer(queryId, `[FAILED] ${raw.slice(0, 500)}`);
+}
+
 const SYSTEM = `You answer only from the passages provided in the user's message.
 
 Rules, without exception:
@@ -115,10 +134,14 @@ export async function POST(req: Request) {
 
       // Without an onError here, a provider failure (no credit, bad key, rate
       // limit) reaches the browser as the useless string "An error occurred."
+      let failure: unknown = null;
       writer.merge(
         result.toUIMessageStream({
           sendStart: false,
-          onError: (e) => (e instanceof Error ? e.message : String(e)),
+          onError: (e) => {
+            failure = e;
+            return readerMessage(e);
+          },
         })
       );
 
@@ -128,12 +151,12 @@ export async function POST(req: Request) {
       if (queryId !== null) {
         try {
           await logAnswer(queryId, await result.text);
-        } catch {
-          /* the answer already reached the reader; bookkeeping can fail quietly */
+        } catch (e) {
+          await logFailure(queryId, failure ?? e);
         }
       }
     },
-    onError: (e) => (e instanceof Error ? e.message : String(e)),
+    onError: readerMessage,
   });
 
   return createUIMessageStreamResponse({ stream });
