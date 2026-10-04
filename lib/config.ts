@@ -1,4 +1,5 @@
 import { openai } from "@ai-sdk/openai";
+import { gateway, wrapLanguageModel, type LanguageModel, type LanguageModelMiddleware } from "ai";
 
 /**
  * Every number that changes the app's personality lives here.
@@ -6,12 +7,41 @@ import { openai } from "@ai-sdk/openai";
  */
 
 /**
- * Answers and verification run on OpenAI, the same account that already does
- * embeddings — one provider, one balance. (The Anthropic API account ran dry
- * on 2026-10-03 and broke a live question. To return to Claude, add Vercel AI
- * Gateway credit and use gateway("anthropic/claude-sonnet-5") from "ai".)
+ * Claude runs through Vercel AI Gateway (billed to the Vercel account, no
+ * Anthropic key). If that call fails before answering — no credit, outage —
+ * the same request goes straight to OpenAI on its own account. Two separate
+ * balances, so one running dry no longer takes the tool down (it did on
+ * 2026-10-03).
  */
-export const ANSWER_MODEL = openai("gpt-5");
+export function withBackup(primary: LanguageModel, backup: LanguageModel, label: string) {
+  const middleware: LanguageModelMiddleware = {
+    specificationVersion: "v3",
+    wrapGenerate: async ({ doGenerate, params }) => {
+      try {
+        return await doGenerate();
+      } catch (e) {
+        console.error(`${label}: primary failed, using backup:`, e instanceof Error ? e.message : e);
+        return (backup as any).doGenerate(params);
+      }
+    },
+    wrapStream: async ({ doStream, params }) => {
+      try {
+        return await doStream();
+      } catch (e) {
+        console.error(`${label}: primary failed, using backup:`, e instanceof Error ? e.message : e);
+        return (backup as any).doStream(params);
+      }
+    },
+  };
+  return wrapLanguageModel({ model: primary as any, middleware });
+}
+
+/** Reasoning model. */
+export const ANSWER_MODEL = withBackup(
+  gateway("anthropic/claude-sonnet-5"),
+  openai("gpt-5"),
+  "answer"
+);
 
 /**
  * The second-pass verifier. Deliberately a MORE capable model than the answerer.
@@ -21,7 +51,11 @@ export const ANSWER_MODEL = openai("gpt-5");
  * very little here. Using a different model also means its mistakes aren't
  * correlated with the answerer's, which is the whole point of a second opinion.
  */
-export const VERIFIER_MODEL = openai("gpt-5");
+export const VERIFIER_MODEL = withBackup(
+  gateway("anthropic/claude-opus-5"),
+  openai("gpt-5"),
+  "verifier"
+);
 
 /** Embedding model. Changing this means changing vector(1536) in the migration too. */
 export const EMBEDDING_MODEL = openai.textEmbeddingModel("text-embedding-3-small");
