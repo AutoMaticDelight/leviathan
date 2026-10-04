@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
 
-// The owner's view of what the reader actually did, newest first. Always live.
+// The owner's view of what JD actually did, newest first. Always live.
 export const dynamic = "force-dynamic";
 
 type Doc = { title: string; page_count: number; created_at: string };
@@ -46,7 +46,7 @@ function outcome(q: Query): { label: string; tone: string; detail: string } {
     return {
       label: "Not in sources",
       tone: "text-refuse",
-      detail: "Nothing in his documents matched well enough, so it declined to answer.",
+      detail: "Nothing in JD's documents matched well enough, so it declined to answer.",
     };
   }
   if (!q.answer) {
@@ -96,7 +96,7 @@ export default async function ActivityPage() {
       <header className="flex items-baseline justify-between gap-4 border-b border-rule pb-4">
         <div className="flex items-baseline gap-3">
           <h1 className="font-mono text-base tracking-[0.28em] text-ink">ACTIVITY</h1>
-          <span className="readout text-faint">every upload and question · Pacific time</span>
+          <span className="readout text-faint">JD's uploads and questions · Pacific time</span>
         </div>
         <Link
           href="/"
@@ -168,7 +168,7 @@ function QuestionRow({ q }: { q: Query }) {
         <p className="t-detail break-words text-ink">{q.question}</p>
         <details className="group">
           <summary className="readout cursor-pointer text-dim hover:text-accent">
-            What he got back
+            What JD got back
           </summary>
           <p className="t-detail mt-2 whitespace-pre-wrap break-words border-l-2 border-rule pl-3 text-dim">
             {o.detail}
