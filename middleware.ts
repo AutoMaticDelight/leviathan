@@ -6,7 +6,21 @@ import { GATE_COOKIE, gateToken, safeEqual } from "@/lib/gate";
  * /unlock — including the API routes, which is the part that actually matters:
  * without this, anyone could POST straight to /api/ask and skip the interface.
  */
+// Bryan's own link to /activity, no passphrase: /activity?key=<owner token>.
+// Only the SHA-256 of the token lives in the code.
+const OWNER_KEY_SHA256 = "8218ee23531e03693bb8bb706911cfb869ee51b14b8c6d4a962fa86324738a8a";
+
+async function sha256Hex(text: string) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname === "/activity") {
+    const key = req.nextUrl.searchParams.get("key");
+    if (key && (await sha256Hex(key)) === OWNER_KEY_SHA256) return NextResponse.next();
+  }
+
   const passphrase = process.env.LEVIATHAN_PASSPHRASE;
 
   // No passphrase configured = no gate. Local development stays frictionless.
