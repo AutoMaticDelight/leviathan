@@ -2,6 +2,7 @@ import { embedMany } from "ai";
 import { extractText } from "unpdf";
 import { db } from "@/lib/supabase";
 import { chunkPages } from "@/lib/chunk";
+import { restructureTables } from "@/lib/structure";
 import { EMBEDDING_MODEL } from "@/lib/config";
 
 export const maxDuration = 300;
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
 
   const buffer = new Uint8Array(await file.arrayBuffer());
   const { totalPages, text } = await extractText(buffer);
-  const pages = Array.isArray(text) ? text : [text];
+  const pages = await restructureTables(buffer, Array.isArray(text) ? text : [text]);
 
   const chunks = chunkPages(pages);
   if (chunks.length === 0) {
@@ -71,6 +72,14 @@ export async function POST(req: Request) {
     }))
   );
   if (rowsErr) return Response.json({ error: rowsErr.message }, { status: 500 });
+
+  // Keep the original so the document can be re-processed when ingestion
+  // improves. A failure here never fails the upload.
+  await supabase.storage.createBucket("originals", { public: false }).catch(() => {});
+  const { error: storeErr } = await supabase.storage
+    .from("originals")
+    .upload(`${doc.id}.pdf`, buffer, { contentType: "application/pdf", upsert: true });
+  if (storeErr) console.error("original not stored:", storeErr.message);
 
   return Response.json({
     title: doc.title,

@@ -29,5 +29,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // Everything except the unlock screen, its own endpoint, the health check, and static assets.
-  matcher: ["/((?!unlock|api/unlock|api/health|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!unlock|api/unlock|api/health|api/reindex-geopolitics|_next/static|_next/image|favicon.ico).*)"],
 };
